@@ -1,0 +1,15 @@
+blinker==1.8.2
+click==8.1.7
+colorama==0.4.6
+Flask==2.3.2
+itsdangerous==2.2.0
+Jinja2==3.1.4
+MarkupSafe==2.1.5
+Werkzeug==3.0.4
+zipp==3.20.1
+cffi==1.17.0
+pip==22.0.2
+pycparser==2.22
+rpy2==3.5.16
+setuptools==59.6.0
+tzlocal==5.2
