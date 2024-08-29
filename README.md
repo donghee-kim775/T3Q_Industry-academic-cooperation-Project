@@ -1,1 +1,6 @@
-# T3Q_-
+# T3Q 산학협력 프로젝트
+### | 현재 진행 중인 RPY2와 Python에 대해 최대한 적어보고자 함.
+- 현재 Project에서 API Refactoring 을 위해 rpy2 라이브러리를 도입하고자함.
+- 또한 해당 프로젝트에서 api는 실행환경에 따라 달라지는 이 실행환경은 사내 server에서 k8s에서 실행 환경에 배포됨.
+- 이에 따른 docker file과 requirements.txt 파일을 올리고자 함.
+- 이는 다른 이들도 사용 가능하다고 판별하기에 docker file과 requirements.txt를 올림
