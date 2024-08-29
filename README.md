@@ -8,7 +8,7 @@
 
 해당 파일을 build 하는 순서
 ```
-git clone https://github.com/donghee-kim775/T3Q_-
+git clone https://github.com/donghee-kim775/T3Q_Industry-academic-cooperation-Project
 
 cd T3Q_Industry-academic-cooperation-Project/Deploy_RPY2_4
 
