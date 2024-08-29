@@ -10,7 +10,7 @@
 ```
 git clone https://github.com/donghee-kim775/T3Q_-
 
-cd T3QRPY2/Deploy_RPY2_4
+cd T3Q_Industry-academic-cooperation-Project/Deploy_RPY2_4
 
 ### Image build
 docker build -t rpy2_app_2 .
