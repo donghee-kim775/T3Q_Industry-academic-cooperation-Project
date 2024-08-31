@@ -20,6 +20,5 @@ docker build -t rpy2_app_2 .
 docker run -d -p 5000:5000 rpy2_app_2
 ```
 
-(POST) "http://localhost:5000/api7"
-Request : ~
-Response : ~
+- (POST) "http://localhost:5000/api7"
+- Request : 기존과 같음
