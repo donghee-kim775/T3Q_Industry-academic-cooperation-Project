@@ -1,5 +1,3 @@
-# T3Q 산학협력 프로젝트
-### | 현재 진행 중인 RPY2와 Python에 대해 최대한 적어보고자 함.
 - 현재 Project에서 API Refactoring 을 위해 rpy2 라이브러리를 도입하고자함.
 - 또한 해당 프로젝트에서 api는 실행환경에 따라 달라지는 이 실행환경은 사내 server에서 k8s에서 실행 환경에 배포됨.
 - 이에 따른 docker file과 requirements.txt 파일을 올리고자 함.
@@ -8,12 +6,10 @@
 
 해당 파일을 build 하는 순서
 ```
-git clone https://github.com/donghee-kim775/T3Q_Industry-academic-cooperation-Project
-
-cd T3Q_Industry-academic-cooperation-Project/Deploy_RPY2_4
+cd /Deploy_RPY2_5
 
 ### Image build
-docker build -t rpy2_app_2 .
+docker build -t rpy2_app_5 .
 
 ### docker run
 docker run -d -p 5000:5000 rpy2_app_2

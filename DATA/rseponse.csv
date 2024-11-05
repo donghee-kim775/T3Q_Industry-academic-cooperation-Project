@@ -1,0 +1,7 @@
+"image_type","image_name","image_to_text"
+contour, 1_1, a
+contour, 1_2, b
+pareto, 2_1, a
+pareto, 2_2, b
+response, 3_1, a
+response, 3_2, b

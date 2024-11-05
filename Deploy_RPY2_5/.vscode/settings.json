@@ -1,0 +1,26 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "default-workgroup.890742571057.us-west-2.redshift-serverless.amazonaws.com",
+            "port": 5439,
+            "driver": "Redshift Driver (Dedicated ver)",
+            "name": "dev",
+            "group": "guest",
+            "database": "dev",
+            "username": "admin",
+            "password": "Dnflsk135"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5439,
+            "driver": "Redshift Driver (Dedicated ver)",
+            "name": "d",
+            "group": "d",
+            "database": "d",
+            "username": "d",
+            "password": "d"
+        }
+    ]
+}

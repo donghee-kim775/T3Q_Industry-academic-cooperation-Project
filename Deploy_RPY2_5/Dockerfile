@@ -13,8 +13,7 @@ RUN apt-get update && \
     ca-certificates \
     curl \
     cmake \
-    xvfb \
-    && apt-get clean
+    xvfb
 
 RUN apt-get install -y python3-venv \
     python3-pip \
@@ -28,11 +27,7 @@ RUN curl -fsSL https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc 
     add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/" && \
     apt-get update
 
-# Install R
-RUN apt-get install -y --no-install-recommends \
-    r-base=4.4.1* \
-    r-base-dev=4.4.1* \
-    && apt-get clean
+RUN apt-get install -y r-base
 
 # Install R packages
 RUN R -e '.libPaths("/usr/local/lib/R/site-library")'

@@ -1,0 +1,17 @@
+{"data" : 
+    [[
+        {
+            "formulation" : 
+                [{"excipients" : "Acetic Acid",
+                  "kind" : "General",
+                  "max" : {"value" : "4.4 %w/v", "unit" : "Acidifier"},
+                  "use range" : {"min" : "-", "max" : "0 ~ 4.4"},
+                  "input range" : {"min" : "1", "max" : "12"}},
+                {"excipients" : "Hydrochloric Acid",
+                  "kind" : "General",
+                  "max" : {"value" : "78.09 mg", "unit" : "Acidifier"},
+                  "use range" : {"min" : "-", "max" : "0 ~ 78.09"},
+                  "input range" : {"min" : "2", "max" : "24"}}],
+            "CQAs" : ["appearance"]}
+]]
+}
