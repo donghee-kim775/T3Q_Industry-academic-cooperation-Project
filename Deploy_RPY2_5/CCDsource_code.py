@@ -80,6 +80,9 @@ def anova_df_to_list(df):
     for response_type, group in df.groupby("response_type"):
         sources = {}
         for _, row in group.iterrows():
+            print(row)
+            print(row["source"])
+            row["source"] = re.sub(r"\s*\(.*\)", "", row["source"])
             sources[row["source"]] = {
                 "df": row["DF"],
                 "sum_sq": row["sumsq"],

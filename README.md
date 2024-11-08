@@ -5,8 +5,15 @@
 - checkpoint 형식으로 build 하여서 4번째 환경을 build하면 됨
 
 해당 파일을 build 하는 순서
+
 ```
+<<<<<<< HEAD
 cd /Deploy_RPY2_5
+=======
+git clone https://github.com/donghee-kim775/T3Q_Industry-academic-cooperation-Project
+
+cd T3Q_Industry-academic-cooperation-Project/Deploy_RPY2_5
+>>>>>>> 9ff4d409cf37bea7481ac552d9518291a7f43aac
 
 ### Image build
 docker build -t rpy2_app_5 .
@@ -14,3 +21,6 @@ docker build -t rpy2_app_5 .
 ### docker run
 docker run -d -p 5000:5000 rpy2_app_2
 ```
+
+- (POST) "http://localhost:5000/api7"
+- Request : 기존과 같음
