@@ -1469,10 +1469,46 @@
 	WHERE PRJCT_ID = #{prjct_id} AND USE_YN = 'Y'
 	</select>
 
+	<select id = "selectStp05cqalist" parameterType = "dataMap" resultType = "dataMap">
+	/* pharmai.formulation.selectStp05cqalist */
+	SELECT
+		*
+	FROM TB_FORMULA_STP_05
+	WHERE PRJCT_ID = #{prjct_id}
+	</select>
 
-
-
-
+	<!-- ################# 추가된 Query v1 ################# -->
+	<select id = "selectListFormula_Prj_DoE" parameterType = "dataMap" resultType = "dataMap">
+	/* pharmai.formulation.selectListFormula_Prj_DoE */
+	SELECT
+		*
+	FROM TB_FORMULA_PRJ_DOE
+	WHERE PRJCT_ID = #{prjct_id}
+	</select>
+	
+	<insert id="insertFormulaPrj_DoE" parameterType="dataMap">
+	/* pharmai.formulation.insertFormulaPrj_DoE */
+	INSERT INTO tb_formula_prj_doe (PRJCT_ID, DoE_Type, REGIST_DT)
+	VALUES (#{prjct_id}, #{DoEName}, NOW())
+	</insert>
+	
+	<update id="updateFormulaPrj_DoE" parameterType="dataMap">
+	/* pharmai.formulation.updateFormulaPrj_DoE */
+	UPDATE tb_formula_prj_doe
+	SET
+	prjct_id = #{prjct_id, jdbcType=VARCHAR},
+	doe_type = #{DoEName, jdbcType=VARCHAR},
+	regist_dt = NOW()
+	WHERE prjct_id = #{prjct_id, jdbcType=VARCHAR}
+	</update>
+	
+	<select id="selectCntExcipient" parameterType="dataMap" resultType="dataMap">
+	/* pharmai.formulation.selectCntExcipient */
+	SELECT COUNT(*) AS CNTExcipient
+	FROM tb_formula_stp_03
+	WHERE PRJCT_ID = #{prjct_id, jdbcType=VARCHAR} AND CHECK_YN = 'Y' AND REGIST_DT = (SELECT MAX(REGIST_DT) FROM tb_formula_stp_03 WHERE PRJCT_ID = #{prjct_id, jdbcType=VARCHAR} AND CHECK_YN = 'Y')
+	</select>
+	<!-- ################################################## -->
 </mapper>
 
 

@@ -303,5 +303,11 @@
 	ORDER BY M.MENU_LEVEL, M.SORT_ORDR
 	LIMIT 1
 	</select>
+	
+	<select id="isReferralCodeValid" resultType="int" parameterType="string">
+       SELECT COUNT(1) 
+       FROM tb_referral_codes 
+       WHERE code = #{referralCode}
+   </select>
 
 </mapper>
