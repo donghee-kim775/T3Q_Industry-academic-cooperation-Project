@@ -18,6 +18,7 @@ import egovframework.framework.common.util.SysUtil;
 import egovframework.framework.common.util.file.NtsysFileMngUtil;
 import egovframework.framework.common.util.file.vo.NtsysFileVO;
 import egovframework.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import net.sf.json.JSONArray;
 
 @Service("experimentService")
 public class ExperimentServiceImpl extends EgovAbstractServiceImpl implements ExperimentService{
@@ -33,16 +34,18 @@ public class ExperimentServiceImpl extends EgovAbstractServiceImpl implements Ex
 	private ExperimentService experimentService;
 
 	public void insertFormulaStp_05(DataMap param) throws Exception{
-		
+		System.out.println("#########ExperimentService_inserFormulaStp_05#########");
 		System.out.println("save 먼저 해주는지 check");
-
+		System.out.println("param : " + param);
+		
 		//header
 		List exprHeader = param.getList("exprHeader");
+		
 		for(int i = 0; i< exprHeader.size(); i++) {
 			param.put("c"+(i+1), exprHeader.get(i));
 		}
 		commonMybatisDao.insert("pharmai.formulation.insertFormulaStp_05", param);
-
+		
 		//experimentData
 		int exprLength = Integer.parseInt(param.getString("exprLength"));
 		for(int i = 0; i< exprLength; i++) {
@@ -54,7 +57,19 @@ public class ExperimentServiceImpl extends EgovAbstractServiceImpl implements Ex
 		}
 
 		List exprDataList = commonMybatisDao.selectList("pharmai.formulation.selectListFormulaStp_05", param);
+		List cqasList = experimentService.selectListFormulaStp_04(param);
+		
+		DataMap cqasMap = null;
+		
+		JSONArray cqadata = new JSONArray();
+		for (Object list : cqasList) {
+			cqasMap = (DataMap) list;
+			if (cqasMap.getString("CHECK_YN").equals("Y")) {
+				cqadata.add(cqasMap.getString("CQA_NM"));
+			}
+		}
 
+		System.out.println("exprDataList : " + exprDataList);
 		File file = null;
 		BufferedWriter bufferWriter = null;
 
@@ -96,7 +111,8 @@ public class ExperimentServiceImpl extends EgovAbstractServiceImpl implements Ex
 		bufferWriter.close();
 
 		String doc_id = StringUtil.nvl(param.getString("doc_id"), SysUtil.getDocId());
-
+		
+		System.out.println("######save Experiment DATA CSV#####");
 		NtsysFileVO fvo = new NtsysFileVO();
 		fvo.setFileId(SysUtil.getFileId());
 		fvo.setDocId(doc_id);

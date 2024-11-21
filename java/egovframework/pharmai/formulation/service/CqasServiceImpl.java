@@ -24,9 +24,18 @@ public class CqasServiceImpl extends EgovAbstractServiceImpl implements CqasServ
 	@Resource(name="commonMybatisDao")
 	private CommonMybatisDao commonMybatisDao;
 
+	
 	@Resource(name="NtsysFileMngUtil")
 	private NtsysFileMngUtil ntsysFileMngUtil;
 
+	public List selectListFormulaPrj_DoE(DataMap param) throws Exception{
+		String prjct_id = param.getString("prjct_id");
+		DataMap input_param = new DataMap();
+		input_param.put("prjct_id", prjct_id);
+		
+		return (List) commonMybatisDao.selectList("selectListFormula_Prj_DoE", input_param);
+	}
+	
 	public List selectListFormulaStp_04(DataMap param) throws Exception {
 		return (List) commonMybatisDao.selectList("pharmai.formulation.selectListFormulaStp_04", param);
 	}
@@ -60,6 +69,34 @@ public class CqasServiceImpl extends EgovAbstractServiceImpl implements CqasServ
 
 	}
 
+	public void insertFormulaPrj_DoE(DataMap param) throws Exception{
+		String DoEName = param.getString("DoE");
+		String prjct_id = param.getString("prjct_id");
+		
+		DataMap input_param = new DataMap();
+		
+		input_param.put("prjct_id", prjct_id);
+		input_param.put("DoEName", DoEName);
+		
+		System.out.println("input_param :" + input_param);
+		System.out.println("DoEName :" + DoEName);
+		System.out.println("Prj ID :" + prjct_id);
+		
+		commonMybatisDao.insert("pharmai.formulation.insertFormulaPrj_DoE", input_param);
+	}
+	
+	public void updateFormulaPrj_DoE(DataMap param) throws Exception{
+		String DoEName = param.getString("DoE");
+		String prjct_id = param.getString("prjct_id");
+		
+		DataMap update_param = new DataMap();
+		
+		update_param.put("prjct_id", prjct_id);
+		update_param.put("DoEName", DoEName);
+		
+		commonMybatisDao.update("pharmai.formulation.updateFormulaPrj_DoE",update_param);
+	}
+	
 	public DataMap selectDosage_Form_type(DataMap param) throws Exception{
 		return commonMybatisDao.selectOne("pharmai.formulation.selectDosage_Form_type", param);
 	}

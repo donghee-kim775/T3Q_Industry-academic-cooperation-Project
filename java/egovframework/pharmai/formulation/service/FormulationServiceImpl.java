@@ -177,5 +177,9 @@ public class FormulationServiceImpl extends EgovAbstractServiceImpl implements F
 	public List selectApi4RoutesData(DataMap param) throws Exception {
 		return (List) commonMybatisDao.selectList("pharmai.formulation.selectApi4RoutesData", param);
 	}
+	
+	public DataMap selectCntExcipient(DataMap param) throws Exception {
+		return commonMybatisDao.selectOne("pharmai.formulation.selectCntExcipient", param);
+	}
 
 }

@@ -86,4 +86,5 @@ public interface FormulationService {
 	 */
 	List selectApi4RoutesData(DataMap param) throws Exception;
 
+	DataMap selectCntExcipient(DataMap param) throws Exception;
 }

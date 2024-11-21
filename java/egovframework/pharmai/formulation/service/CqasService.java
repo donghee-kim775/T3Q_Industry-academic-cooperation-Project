@@ -10,7 +10,13 @@ public interface CqasService {
 
 	List selectListFormulaStp_04(DataMap param) throws Exception;
 
+	List selectListFormulaPrj_DoE(DataMap param) throws Exception;
+	
 	void insertFormulaStp_04(DataMap param) throws Exception;
+	
+	void insertFormulaPrj_DoE(DataMap param) throws Exception;
 
+	void updateFormulaPrj_DoE(DataMap param) throws Exception;
+	
 	DataMap selectDosage_Form_type(DataMap param) throws Exception;
 }
