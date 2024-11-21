@@ -69,6 +69,36 @@ def DataProcessing(value):
     
     return experiment_data, input_df
 
+'''
+anova 수치를 JSON 형식으로 변환
+'''
+def anova_df_to_list(df):
+    # NA 값을 0으로 대체
+    df = df.fillna(0)
+
+    # 데이터프레임을 리스트 형식으로 변환
+    anova_list = []
+    
+    for response_type, group in df.groupby("response_type"):
+        sources = {}
+        for _, row in group.iterrows():
+            print(row)
+            print(row["source"])
+            row["source"] = re.sub(r"\s*\(.*\)", "", row["source"])
+            sources[row["source"]] = {
+                "df": row["DF"],
+                "sum_sq": row["sumsq"],
+                "mean_sq": row["meansq"],
+                "F value": row["F_VALUE"],
+                "Pr(>F)": row["PR(>F)"]
+            }
+        anova_list.append({
+            "response_type": response_type,
+            "source": sources
+        })
+
+    return anova_list
+
 def runScript(value):
     try:
         experiment_data, input_df  = DataProcessing(value)
@@ -88,8 +118,8 @@ def runScript(value):
             ################
             r = ro.r
             print(r.source("./Rscript/BBDGraph.R"))
-
             print("Return Python")
+            
             #############
             ##-effects-##
             #############
@@ -143,11 +173,13 @@ def runScript(value):
                 y_str = "Y%d" % (f+1)
                 new_dict[y_str] = {effect_range_dict[f][0] : effect_range_dict[f][1]}
                 effect_list.append(new_dict)
-            
-            print("###############################")
-            print("##### Python effect_list #####")
-            print("###############################")
-            print(effect_list)
+
+            ###############
+            ###- anova -###
+            ###############
+            print("### anova ###")
+            final_anova_df = ro.conversion.rpy2py(ro.globalenv['final_anova_df'])
+            anova_list = anova_df_to_list(final_anova_df)
             
             ##############
             ##-imageenc-##
@@ -161,6 +193,7 @@ def runScript(value):
             print(image_df)
             
             image_result = {}
+            
             for _, row in image_df.iterrows():
                 image_type = row['image_type']
                 
@@ -175,7 +208,8 @@ def runScript(value):
             print("###############################")
             print("##### Python image_result #####")
             print("###############################")
-            print(image_result)    
+            print(image_result)
+            
     except Exception as e:
         print("error : " , e)
         
@@ -186,6 +220,7 @@ def runScript(value):
     res_dict['contour'] = image_result['contour']
     res_dict['response'] = image_result['response']
     res_dict['pareto'] = image_result['pareto']
+    res_dict['anova'] = anova_list
     res_dict['effects'] = effect_list
     code = "000"
     msg = "success"
@@ -195,4 +230,4 @@ def runScript(value):
     print("###########################")
     print(res_dict)
     
-    return res_dict, code, msg 
+    return res_dict, code, msg

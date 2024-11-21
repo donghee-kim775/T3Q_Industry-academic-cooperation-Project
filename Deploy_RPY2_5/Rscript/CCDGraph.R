@@ -1,3 +1,4 @@
+# library(jsonlite)
 # json_data <- '{"excipients": ["Acetic Acid", "Citric Acid"],"input.range.min": [1, 2],"input.range.max": [12, 24]}'
 # parseddata <- fromJSON(json_data)
 # data <- as.data.frame(parseddata)
@@ -129,12 +130,12 @@ for (i in 1:length(rsm.models)){
   rsm_anova <- anova(rsm.models[[i]])
   anova_df <- as.data.frame(rsm_anova)
   anova_df$response_type <- response_type
-  
+
   # row.names를 source라는 새로운 컬럼으로 저장
   anova_df$source <- rownames(anova_df)
   # row.names 초기화
   rownames(anova_df) <- NULL
-  
+  print(anova_df) 
   anova_df_list[[i]] <- anova_df
 }
 
@@ -308,6 +309,7 @@ if (nrow(data) == 2){
 ##################################
 ###----pareto_Graph_DF 생성----###
 ##################################
+# ==> Pareto Chart
 print("################")
 print("##Pareto_Graph##")
 print("################")

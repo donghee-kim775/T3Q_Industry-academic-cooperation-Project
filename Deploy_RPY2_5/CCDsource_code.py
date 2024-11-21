@@ -4,7 +4,6 @@ import rpy2.robjects as ro
 from rpy2.robjects import r
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.conversion import localconverter
-import json
 import re
 
 def train(tm):
@@ -13,9 +12,6 @@ def train(tm):
 def init_svc(im):
     pass
 
-'''
-data 전처리
-'''
 def DataProcessing(value):
     # 공백 처리
     for data in value['data'][0][0]['experiment data']:
@@ -104,6 +100,7 @@ def runScript(value):
     try:
         experiment_data, input_df  = DataProcessing(value)
         origin_data = value['data'][0][0]
+        
         with localconverter(ro.default_converter + pandas2ri.converter):
             pandas2ri.activate()
 
@@ -119,6 +116,7 @@ def runScript(value):
             r = ro.r
             print(r.source('./Rscript/CCDGraph.R'))
             print("Return Python")
+            
             #############
             ##-effects-##
             #############

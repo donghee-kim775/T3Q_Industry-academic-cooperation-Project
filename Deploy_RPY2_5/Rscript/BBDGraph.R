@@ -132,6 +132,49 @@ for (yvar in yvars) {
     rsm.models <- append(rsm.models, list(rsm.model))
     print(rsm.models)
 }
+print("##### RSM 모델 생성 완료 #####")
+
+print("##### RSM-ANOVA ######")
+
+#########################
+######### anova #########
+#########################
+anova_df_list <- list()
+
+# 데이터프레임 생성하는 부분은 동일
+for (i in 1:length(rsm.models)){
+  response_type <- as.character(rsm.models[[i]]$call$formula)[2]
+  rsm_anova <- anova(rsm.models[[i]])
+  anova_df <- as.data.frame(rsm_anova)
+  anova_df$response_type <- response_type
+
+  # row.names를 source라는 새로운 컬럼으로 저장
+  anova_df$source <- rownames(anova_df)
+  # row.names 초기화
+  rownames(anova_df) <- NULL
+  print(anova_df) 
+  anova_df_list[[i]] <- anova_df
+}
+
+# 데이터프레임 결합
+combined_anova_df <- do.call(rbind, anova_df_list)
+
+# 뒤에 붙는 숫자 제거를 위해 source 컬럼에서 숫자 제거
+combined_anova_df$source <- gsub("[0-9]", "", combined_anova_df$source)
+
+# 필요한 컬럼 선택 및 NA 값을 0으로 대체
+final_anova_df <- combined_anova_df[, c("response_type", "source", "Df", "Sum Sq", "Mean Sq", "F value", "Pr(>F)")]
+final_anova_df[is.na(final_anova_df)] <- 0
+
+# 컬럼 이름 변경
+colnames(final_anova_df) <- c( "response_type", "source","DF", "sumsq", "meansq", "F_VALUE", "PR(>F)")
+
+# 결과 출력
+print("##### ANOVA 결과 #####")
+print(final_anova_df)
+#############################
+######### Anova_End #########
+#############################
 
 # 이미지명 x, y  조합을 위해 y_list 추출 필요
 y_list <- names(df.response)
