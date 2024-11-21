@@ -74,15 +74,20 @@ public class CqasController {
 			throws Exception {
 		DataMap param = RequestUtil.getDataMap(request);
 
+		//excipient 개수
 		UserInfoVo userInfoVo = SessionUtil.getSessionUserInfoVo(request);
+		System.out.println("step4 시작 : "+ userInfoVo.getCur_prjct_id());
 		param.put("prjct_id", param.getString("prjct_id", userInfoVo.getCur_prjct_id()));
+		
+		String prjct_id = userInfoVo.getCur_prjct_id();
+		
 		param.put("prjct_type", param.getString("prjct_type", userInfoVo.getCur_prjct_type()));
 		param.put("status", param.getString("status", "04"));
 		param.put("userNo", userInfoVo.getUserNo());
-
+		
 		String next_data = formulationService.selectNextDataExt(param);
 		param.put("next_data", next_data);
-
+		
 		List cqasList = cqasService.selectListFormulaStp_04(param);
 		if (cqasList != null && cqasList.size() > 0) { //db통신
 			model.addAttribute("cqasList", cqasList);
@@ -94,10 +99,18 @@ public class CqasController {
 			param.put("cqa_routes", dosage_form.getString("ROUTES_TYPE"));
 		}
 		DataMap pjtData = formulationService.selectPjtMst(param);//project master
-
+		
+		DataMap cntExcipient = formulationService.selectCntExcipient(param);
+		int countExcipient = cntExcipient.getInt("CNTExcipient");
+		
+		System.out.println("countExcipient : " + countExcipient);
+		param.put("cntExcipient", countExcipient);
+		
 		model.addAttribute("pjtData", pjtData);
 		model.addAttribute("param", param);
-
+		
+		System.out.println("model : " + model);
+		
 		return "pharmai/formulation/selectCQAsList";
 	}
 
@@ -196,16 +209,30 @@ public class CqasController {
 		DataMap param = RequestUtil.getDataMap(request);
 
 		UserInfoVo userInfoVo = SessionUtil.getSessionUserInfoVo(request);
+		System.out.println("save_step4 param : " + param);
+		System.out.println("save_step4 param DoE : " + request.getParameter("DoE"));
 		param.put("ss_user_no", userInfoVo.getUserNo());
 
 		formulationService.stepChangeFunc(param);
-
+		
+		// ###################################
+		// #############insertDoE#############
+		// ###################################
+		
 		// insert
 		cqasService.insertFormulaStp_04(param);
+		List existDoE = cqasService.selectListFormulaPrj_DoE(param);
 
-		//마지막 수정일
-		formulationService.updatePjt_mst(param);
-
+		if (existDoE != null && !existDoE.isEmpty()) {
+			// 데이터 있음 update
+			cqasService.updateFormulaPrj_DoE(param);
+		}
+		else {
+			// 데이터 없음 insert
+			cqasService.insertFormulaPrj_DoE(param);
+		}
+		System.out.println("existDoE : " + existDoE);
+		
 		return "redirect: /pharmai/chemical/formulation/selectExperiment.do";
 
 	}

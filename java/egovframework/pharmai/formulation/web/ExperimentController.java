@@ -8,7 +8,9 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -32,6 +34,7 @@ import egovframework.framework.common.util.file.NtsysFileMngUtil;
 import egovframework.framework.common.util.file.service.NtsysFileMngService;
 import egovframework.pharmai.formulation.service.ExperimentService;
 import egovframework.pharmai.formulation.service.FormulationService;
+import egovframework.pharmai.formulation.service.CqasService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
@@ -58,29 +61,34 @@ public class ExperimentController {
 	@Resource(name = "formulationService")
 	private FormulationService formulationService;
 
+	@Resource(name = "cqasService")
+	private CqasService cqasService;
+	
 	@Resource(name = "experimentService")
 	private ExperimentService experimentService;
-
+	
 	@Resource(name = "NtsysFileMngUtil")
 	private NtsysFileMngUtil ntsysFileMngUtil;
 
 	@Resource(name = "NtsysFileMngService")
 	private NtsysFileMngService ntsysFileMngService;
 
-
 	/*STEP5 시작*/
 	@RequestMapping(value = "/pharmai/chemical/formulation/selectExperiment.do")
 	public String selectExperiment(HttpServletRequest request, HttpServletResponse response, ModelMap model)
 			throws Exception {
-
+		
+		System.out.println("#########ExperimentController_selectExperiment#########");
 		DataMap param = RequestUtil.getDataMap(request);
-
+		
 		UserInfoVo userInfoVo = SessionUtil.getSessionUserInfoVo(request);
+		System.out.println("SelectExperiment_USERINFO :" + userInfoVo);
+		
 		param.put("prjct_id", param.getString("prjct_id", userInfoVo.getCur_prjct_id()));
 		param.put("prjct_type", param.getString("prjct_type", userInfoVo.getCur_prjct_type()));
 		param.put("status", param.getString("status", "05"));
 		param.put("userNo", userInfoVo.getUserNo());
-
+		
 		String next_data = formulationService.selectNextDataExt(param);
 		param.put("next_data", next_data);
 
@@ -100,8 +108,25 @@ public class ExperimentController {
 		DataMap pjtData = formulationService.selectPjtMst(param);//project master
 		model.addAttribute("pjtData", pjtData);
 		model.addAttribute("param", param);
+		System.out.println("select Experiment_Param : " + param);
+		
+		/* 추가 코드
+		/* ################################### */
+		/* #### DOE 추출에 따른 다른 JSP 불러오기 #### */
+		/* ################################### */
+		List existDoE = cqasService.selectListFormulaPrj_DoE(param);
+		DataMap dataMap = (DataMap) existDoE.get(0);
+		String DoEType = (String) dataMap.get("DoE_Type");
+		String return_url = "";
+		
+		if (DoEType.equals("SLD")){
+			return_url = "pharmai/formulation/selectExperiment_SLD";
+		}
+		else {
+			return_url = "pharmai/formulation/selectExperiment";
+		}
 
-		return "pharmai/formulation/selectExperiment";
+		return return_url;
 	}
 
 
@@ -126,7 +151,8 @@ public class ExperimentController {
 		Object data = new Object();
 
 		DataMap cqasMap = null;
-
+		
+		System.out.println("selectStp_03 param : " + param);
 		List selectStp_03 = experimentService.selectListFormulaStp_03(param);
 
 		DataMap selectStp_03Map = null;
@@ -175,17 +201,58 @@ public class ExperimentController {
 		jsonarr.add(inputData);
 		jsonArrPrimary.add(jsonarr);
 		jsonob.put("data", jsonArrPrimary);
-
-		System.out.println("jsonob : " + jsonob.toString());
-
+		
+		System.out.println("CQA DATA : " + cqadata); //["appearance", "assay"]
+		System.out.println("Experiment jsonob : " + jsonob.toString());
+		
+		//#################################################################
+		//##################수정 중 DoE 방식에 따른 API URL 수정##################
+		//#################################################################
+		// 수정 필요
+		List formulation_DoE = cqasService.selectListFormulaPrj_DoE(param);
+		DataMap doe_data = (DataMap) formulation_DoE.get(0);  // 첫 번째 DataMap 객체 가져오기
+	    String DoE = doe_data.getString("DoE_Type");
+		
+	    System.out.println("REQUEST_DoE : " + DoE);
+		System.out.println(DoE);
+	    
+		String formulation_api5 = "";
+	    
+		// DoE에 따른 api5 url 설정
+		if (DoE.equals("CCD")) {
+			System.out.println("if CCD");
+			formulation_api5 = "Globals.api.formulation.api5_CCD";
+			URL API_5_url = new URL(EgovPropertiesUtil.getProperty(formulation_api5));
+			System.out.println("API_5_url : " + API_5_url);
+		}
+		else if (DoE.equals("BBD")) {
+			System.out.println("if BBD");
+			formulation_api5 = "Globals.api.formulation.api5_BBD";
+			URL API_5_url = new URL(EgovPropertiesUtil.getProperty(formulation_api5));
+			System.out.println("API_5_url : " + API_5_url);
+		}
+		else if (DoE.equals("SLD")) {
+			System.out.println("if SLD");
+			formulation_api5 = "Globals.api.formulation.api5_SLD";
+			URL API_5_url = new URL(EgovPropertiesUtil.getProperty(formulation_api5));
+			System.out.println("API_5_url : " + API_5_url);
+		}
+		
+		System.out.println("api 5 URL : " + formulation_api5);
+		//#################################################################
+		//#################################################################
+		//#################################################################
+		
+		System.out.println("");
+		
 		try {
-
-			url = new URL(EgovPropertiesUtil.getProperty("Globals.api.formulation.api5"));
+			url = new URL(EgovPropertiesUtil.getProperty(formulation_api5));
+			System.out.println("request_url : " + url);
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
 			conn.setRequestProperty("Accept", "application/json");
-			conn.setConnectTimeout(5000);
-			conn.setReadTimeout(5000);
+			conn.setConnectTimeout(99999);
+			conn.setReadTimeout(99999);
 			conn.setRequestMethod("POST");
 			conn.setDoOutput(true);
 
@@ -209,10 +276,13 @@ public class ExperimentController {
 			data = parser.parse(sb.toString());
 
 		} catch (MalformedURLException e) {
+			System.out.println("error : " + e);
 			log.error("######### 예외 발생65 ##########");
 		} catch (IOException e) {
+			System.out.println("error : " + e);
 			log.error("######### 예외 발생66 ##########");
 		} catch (JSONException e) {
+			System.out.println("error : " + e);
 			log.error("######### 예외 발생67 ##########");
 		} finally {
 			in.close();
@@ -224,33 +294,39 @@ public class ExperimentController {
 		DataMap resultStats = new DataMap();
 		resultStats.put("resultData", data);
 		resultJSON.put("resultStats", resultStats);
-
+		
+		System.out.println("api 5 response : " + resultJSON);
+		
 		return resultJSON;
 	}
 
+	// STEP5 NEXT시 
 	@RequestMapping(value = "/pharmai/formulation/saveStep5.do")
 	public String saveStep5(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
 		DataMap param = RequestUtil.getDataMap(request);
-
+		
+		System.out.println("#########ExperimentController_saveStep5#########");
+		
 		UserInfoVo userInfoVo = SessionUtil.getSessionUserInfoVo(request);
 		param.put("ss_user_no", userInfoVo.getUserNo());
 
 		formulationService.stepChangeFunc(param);
-
+		System.out.println("saveStep5_request : " + request); // org.apache.catalina
+		System.out.println("saveStep5 : " + param);
+		
 		// insert
 		experimentService.insertFormulaStp_05(param);
-
+		
 		//마지막 수정일
 		formulationService.updatePjt_mst(param);
 
 		return "redirect: /pharmai/chemical/formulation/selectDoE.do";
-
 	}
 
 
 	@RequestMapping(value = "/pharmai/formulation/saveFormulTemporary.do")
 	public String saveFormulTemporary(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception{
-
+		System.out.println("#########ExperimentController_Temporary#########");
 		DataMap param = RequestUtil.getDataMap(request);
 
 		UserInfoVo userInfoVo = SessionUtil.getSessionUserInfoVo(request);

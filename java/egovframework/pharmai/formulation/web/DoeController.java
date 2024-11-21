@@ -40,6 +40,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import egovframework.admin.common.vo.UserInfoVo;
+import egovframework.bio.formulation.service.BioExperimentService;
+import egovframework.framework.common.dao.CommonMybatisDao;
 import egovframework.framework.common.constant.Globals;
 import egovframework.framework.common.object.DataMap;
 import egovframework.framework.common.util.EgovMessageSource;
@@ -48,6 +50,7 @@ import egovframework.framework.common.util.RequestUtil;
 import egovframework.framework.common.util.SessionUtil;
 import egovframework.framework.common.util.file.NtsysFileMngUtil;
 import egovframework.framework.common.util.file.service.NtsysFileMngService;
+import egovframework.pharmai.formulation.service.CqasService;
 import egovframework.pharmai.formulation.service.DoeService;
 import egovframework.pharmai.formulation.service.ExperimentService;
 import egovframework.pharmai.formulation.service.FormulationService;
@@ -71,6 +74,12 @@ public class DoeController {
 
 	private static Log log = LogFactory.getLog(DoeController.class);
 
+	@Resource(name="commonMybatisDao")
+	private CommonMybatisDao commonMybatisDao;
+	
+	@Resource(name = "bioExperimentService")
+	private BioExperimentService bioExperimentService;
+	
 	@Resource(name = "egovMessageSource")
 	private EgovMessageSource egovMessageSource;
 
@@ -83,12 +92,29 @@ public class DoeController {
 	@Resource(name = "doeService")
 	private DoeService doeService;
 
+	@Resource(name = "cqasService")
+	private CqasService cqasService;
+	
 	@Resource(name = "NtsysFileMngUtil")
 	private NtsysFileMngUtil ntsysFileMngUtil;
 
 	@Resource(name = "NtsysFileMngService")
 	private NtsysFileMngService ntsysFileMngService;
-
+	
+	public void deleteDirectoryContents(File directory) {
+	    if (directory.exists()) {
+	        File[] files = directory.listFiles();
+	        if (files != null) {
+	            for (File file : files) {
+	                if (file.isDirectory()) {
+	                    deleteDirectoryContents(file);
+	                }
+	                file.delete();
+	            }
+	        }
+	    }
+	}
+	
 	/* STEP6 시작 */
 	@RequestMapping(value = "/pharmai/chemical/formulation/selectDoE.do")
 	public String formulationResult(HttpServletRequest request, HttpServletResponse response, ModelMap model)
@@ -116,7 +142,7 @@ public class DoeController {
 			DataMap preto_file_nm = new DataMap();
 			DataMap contour_file_nm = new DataMap();
 			DataMap response_file_nm = new DataMap();
-
+			
 			for (int i = 0; i < 5; i++) {
 				String tempData = selectStep6Graph_preto.getString("PRETO_PATH_" + (i + 1))
 						.replace("/home/data/t3q/uploads/", "/upload/");
@@ -134,7 +160,7 @@ public class DoeController {
 
 			model.addAttribute("selectStep6Graph_preto", selectStep6Graph_preto);
 			model.addAttribute("preto_file_nm", preto_file_nm);
-
+			
 			for (int i = 0; i < 15; i++) {
 				String tempData = selectStep6Graph_contour.getString("CONTOUR_PATH_" + (i + 1))
 						.replace("/home/data/t3q/uploads/", "/upload/");
@@ -153,7 +179,7 @@ public class DoeController {
 
 			model.addAttribute("selectStep6Graph_contour", selectStep6Graph_contour);
 			model.addAttribute("contour_file_nm", contour_file_nm);
-
+			
 			for (int i = 0; i < 15; i++) {
 				String tempData = selectStep6Graph_response.getString("RESPONSE_PATH_" + (i + 1))
 						.replace("/home/data/t3q/uploads/", "/upload/");
@@ -206,7 +232,7 @@ public class DoeController {
 			model.addAttribute("selectStep6Design_img", selectStep6Design_img);
 			model.addAttribute("design_file_nm", design_file_nm);
 		}
-
+		
 		List selectStep6ResultList = doeService.selectStp07result(param);
 		DataMap selectStepResultImgData = doeService.selectStp07resultImg(param);
 		DataMap result_file_nm = new DataMap();
@@ -249,7 +275,7 @@ public class DoeController {
 
 			List selectStp_06 = doeService.selectListFormulaStp_06(param);
 			List selectStp_03 = experimentService.selectListFormulaStp_03(param);
-
+			
 			model.addAttribute("result_file_nm", result_file_nm);
 			model.addAttribute("selectStep6ResultList", selectStep6ResultList);
 			model.addAttribute("selectStepResultImgData", selectStepResultImgData);
@@ -298,26 +324,88 @@ public class DoeController {
 	@RequestMapping(value = "/pharmai/formulation/getApi6Ajax.do")
 	public @ResponseBody DataMap getApi6Ajax(HttpServletRequest request, HttpServletResponse response, ModelMap model)
 			throws Exception {
+		System.out.println("#########getApi6Ajax.do###########");
 		// return 상태
 		DataMap resultStats = new DataMap();
 
 		log.debug("####" + this.getClass().getName() + " START ####");
 		DataMap resultJSON = new DataMap();
 		DataMap param = RequestUtil.getDataMap(request);
-
+		
+		System.out.println(param);
+		
 		URL url;
 		HttpURLConnection conn;
 
 		StringBuffer sb = new StringBuffer();
 		BufferedReader in = null;
-
+/// ********************************************************
+/// ***************** Put Data for Request *****************
+/// ********************************************************
 		JSONObject jsonob = new JSONObject();
 		JSONObject jdata = new JSONObject();
 		JSONArray jsonarr = new JSONArray();
 		JSONArray jsonArrPrimary = new JSONArray();
 
-		jdata.put("experiment data", param.getString("experiment data"));
-
+		System.out.println("get_api_6_param : " + param);
+		
+		/// 수정 완료_start
+		/// ********************************************
+		/// **Request Experiment CSV PATH -> Real Data**------------------------------------------------
+		/// ********************************************
+		List cqasList = experimentService.selectListFormulaStp_04(param);
+		
+		DataMap cqasMap = null;
+		
+		JSONArray cqadata = new JSONArray();
+		for (Object list : cqasList) {
+			cqasMap = (DataMap) list;
+			if (cqasMap.getString("CHECK_YN").equals("Y")) {
+				cqadata.add(cqasMap.getString("CQA_NM"));
+			}
+		}
+		
+		System.out.println("doecontroller_cqadata : " + cqadata); // header
+		System.out.println("cqadatasize : " + cqadata.size()); // cqa개수
+		
+		List exprDataList = commonMybatisDao.selectList("pharmai.formulation.selectListFormulaStp_05", param);
+		int selectStp3TotYn = bioExperimentService.selectStp3TotYn(param);
+		
+		DataMap data_0 = new DataMap();
+		
+		JSONArray ExperimentData = new JSONArray();
+		JSONArray cqa_data = new JSONArray(); // 최종 cqa 데이터
+		
+		for(int i = 1+selectStp3TotYn; i <= selectStp3TotYn + cqadata.size(); i++) {
+			System.out.println("######## Refac_데이터 #######");
+			List<String> datalist = new ArrayList<>(); // cqa value
+			String header = ""; // header
+			JSONObject cqa_temp = new JSONObject(); // cqa_temp
+			
+			for(int j = 0; j< exprDataList.size();j++) {
+				data_0 = (DataMap) exprDataList.get(j);
+				String currentData = data_0.getString("C"+i);
+				if (j==0) { // currentData -> header
+					System.out.println("#### j = 0 번째 입니다. ####");
+					System.out.println(i + "_" + j + "번째 : "+ currentData);
+					header = currentData;
+				}
+				else { // header -> 해당 header 데이터에 나머지 cqa value append
+					System.out.println(i + "_" + j + "번째 : "+ currentData);
+					datalist.add(currentData);
+				}
+			}
+			cqa_temp.put(header, datalist);
+			System.out.println(header + " : " + datalist);
+			System.out.println("JSON_temp : " + cqa_temp);
+			cqa_data.add(cqa_temp);
+		}
+		
+		jdata.put("experiment data", cqa_data);
+		/// ********************************************
+		///-----------------------------------------------------------------------------------------------------
+		/// ********************************************		
+		/// 수정 완료_end
 		List selectStp_03 = experimentService.selectListFormulaStp_03(param);
 		List selectStp_04 = experimentService.selectListFormulaStp_04(param);
 
@@ -365,42 +453,98 @@ public class DoeController {
 		}
 		jdata.put("formulation", jsonarrFormulation);
 
+		/// ***************************************
+		/// ************** image-path *************
+		/// ***************************************
 		jdata.put("pareto-path", param.getString("pareto-path"));
 		jdata.put("contour-path", param.getString("contour-path"));
 		jdata.put("response-path", param.getString("response-path"));
-
+		
+		/// ********************************************
+		/// ************** image_dir_write *************
+		/// ********************************************
 		// add 22.05.27
 		String prjct_id = param.getString("prjct_id");
-		String path1 = EgovPropertiesUtil.getProperty("Globals.fileWebrootPath.formulation") + prjct_id
+		String pareto_path = EgovPropertiesUtil.getProperty("Globals.fileWebrootPath.formulation") + prjct_id
 				+ "/api6/tab-1/pareto/";
-		String path2 = EgovPropertiesUtil.getProperty("Globals.fileWebrootPath.formulation") + prjct_id
+		String contour_path = EgovPropertiesUtil.getProperty("Globals.fileWebrootPath.formulation") + prjct_id
 				+ "/api6/tab-2/contour/";
-		String path3 = EgovPropertiesUtil.getProperty("Globals.fileWebrootPath.formulation") + prjct_id
+		String response_path = EgovPropertiesUtil.getProperty("Globals.fileWebrootPath.formulation") + prjct_id
 				+ "/api6/tab-3/response/";
-
+		
 		// path에 해당하는 디렉토리가 존재하지 않는 경우 해당 디렉토리 생성
-		File directory1 = new File(path1);
-		File directory2 = new File(path2);
-		File directory3 = new File(path3);
+		File directory1 = new File(pareto_path);
+		File directory2 = new File(contour_path);
+		File directory3 = new File(response_path);
 
-		if (!directory1.exists() || !directory2.exists() || !directory3.exists()) {
-			directory1.mkdirs();
-			directory2.mkdirs();
-			directory3.mkdirs();
+		deleteDirectoryContents(directory1);
+		deleteDirectoryContents(directory2);
+		deleteDirectoryContents(directory3);
+
+		if (!directory1.exists()) {
+			System.out.println("directory 1 존재 x");
+		    directory1.mkdirs();
+		}
+		if (!directory2.exists()) {
+			System.out.println("directory 2 존재 x");
+		    directory2.mkdirs();
+		}
+		if (!directory3.exists()) {
+			System.out.println("directory 3 존재 x");
+		    directory3.mkdirs();
 		}
 
+		/// *********************************************
+		/// ***************Complete-Request**************
+		/// *********************************************
+		
+		List formulation_DoE = cqasService.selectListFormulaPrj_DoE(param);
+		DataMap doe_data = (DataMap) formulation_DoE.get(0);  // 첫 번째 DataMap 객체 가져오기
+	    String DoE = doe_data.getString("DoE_Type");
+		
+	    System.out.println("REQUEST_DoE : " + DoE);
+		System.out.println(DoE);
+	    
+		String formulation_api6 = "";
+
+		// DoE에 따른 api5 url 설정
+		if (DoE.equals("CCD")) {
+			System.out.println("if CCD");
+			formulation_api6 = "Globals.api.formulation.api6_CCD";
+			URL API_6_url = new URL(EgovPropertiesUtil.getProperty(formulation_api6));
+			System.out.println("API_6_url : " + API_6_url);
+		}
+		else if (DoE.equals("BBD")) {
+			System.out.println("if BBD");
+			formulation_api6 = "Globals.api.formulation.api6_BBD";
+			URL API_6_url = new URL(EgovPropertiesUtil.getProperty(formulation_api6));
+			System.out.println("API_6_url : " + API_6_url);
+		}
+		else if (DoE.equals("SLD")) {
+			System.out.println("if SLD");
+			formulation_api6 = "Globals.api.formulation.api6_SLD";
+			URL API_6_url = new URL(EgovPropertiesUtil.getProperty(formulation_api6));
+			System.out.println("API_6_url : " + API_6_url);
+		}
+		
+		System.out.println("api 6 URL : " + formulation_api6);		
+		
 		jsonarr.add(jdata);
 		jsonArrPrimary.add(jsonarr);
 		jsonob.put("data", jsonArrPrimary);
-
+		System.out.println("최종 data check : " + jsonob);
+		
+		
+		/// *********************************************
+		/// **************API6_Refac-Request*************
+		/// *********************************************		
 		try {
-
-			url = new URL(EgovPropertiesUtil.getProperty("Globals.api.formulation.api6"));
+			url = new URL(EgovPropertiesUtil.getProperty(formulation_api6));
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
 			conn.setRequestProperty("Accept", "application/json");
-			conn.setConnectTimeout(5000);
-			conn.setReadTimeout(5000);
+			conn.setConnectTimeout(10000);
+			conn.setReadTimeout(10000);
 			conn.setRequestMethod("POST");
 			conn.setDoOutput(true);
 
@@ -416,24 +560,81 @@ public class DoeController {
 			while ((inputLine = in.readLine()) != null) {
 				sb.append(inputLine.trim());
 			}
-
-//			log.debug(sb.toString());
-//			JSONParser parser = new JSONParser();
-//			data = parser.parse(sb.toString());
+		/// ********************************************
+		/// **-----------------------------------------------
+		/// ********************************************
+			System.out.println("***** API 요청 완료 *****");
+		/// ********************************************
+		/// **************Complete-Response*************
+		/// ********************************************
+			log.debug(sb.toString());
+			// JSONParser parser = new JSONParser(); 해당 코드 밑에 코드로 변경
+			// data = parser.parse(sb.toString()); 해당 코드 밑에 코드로 변경
 
 			// add 22.06.02 (objectMapper로 데이터 형태 변환)
 			ObjectMapper om = new ObjectMapper();
 			data = om.readTree(sb.toString());
-
+			
 			// output data에 globals.properties env 값 전달
 			((ObjectNode)data).put("system_env", Globals.SYSTEM_ENV);
-
-			// data에서 pareto base64 값만 가져오기
+			System.out.println("response_data : " + data);
+			
+			// data에서 result 값만 가져오기
 			JsonNode parse_result = data.get("result");
-			ArrayNode parse_pareto = (ArrayNode) parse_result.get("pareto");
-			ArrayNode parse_contour = (ArrayNode) parse_result.get("contour");
-			ArrayNode parse_response = (ArrayNode) parse_result.get("response");
-
+			
+			// testing
+			ObjectNode resultObject = (ObjectNode) parse_result;
+			
+			System.out.println("parse_result : " + parse_result);
+			System.out.println("parse_result type : " + parse_result.getClass().getName());
+			System.out.println("ObjectNode resultObject : " + resultObject.get("pareto"));
+			
+			// 기존 Result image_to_base64 parsing
+			// ArrayNode parse_pareto = (ArrayNode) parse_result.get( "pareto");
+			// ArrayNode parse_contour = (ArrayNode) parse_result.get("contour");
+			// ArrayNode parse_response = (ArrayNode) parse_result.get("response");
+			
+			JsonNode parse_anova = null;
+			JsonNode parse_pareto = null;
+			JsonNode parse_contour = null;
+			JsonNode parse_response = null;
+			
+			// **********---anova---**********
+			if (parse_result.has("anova") && parse_result.get("anova").isArray()) {
+	            parse_anova = parse_result.get("anova");
+	            System.out.println("******anova******");
+	            System.out.println(parse_anova);
+	        } else {
+	            System.out.println("'pareto' field is missing or not an array.");
+	        }
+			
+			// **********---pareto---**********
+			if (parse_result.has("pareto") && parse_result.get("pareto").isArray()) {
+	            parse_pareto = parse_result.get("pareto");
+	            System.out.println("******pareto******");
+	            System.out.println(parse_pareto);
+	        } else {
+	            System.out.println("'pareto' field is missing or not an array.");
+	        }
+			
+			// **********---contour---**********
+			if (parse_result.has("contour") && parse_result.get("contour").isArray()) {
+	            parse_contour = parse_result.get("contour");
+	            System.out.println("******contour******");
+	            System.out.println(parse_contour);
+	        } else {
+	            System.out.println("'contour' field is missing or not an array.");
+	        }
+			
+			// **********---response---**********
+			if (parse_result.has("response") && parse_result.get("response").isArray()) {
+	            parse_response = parse_result.get("response");
+	            System.out.println("******response******");
+	            System.out.println(parse_response);
+	        } else {
+	            System.out.println("'response' field is missing or not an array.");
+	        }
+			
 			// ** start binary 데이터가 빈값으로 들어오는 경우 예외처리*/
 			if (StringUtils.isEmpty(String.valueOf(parse_pareto)) || StringUtils.isEmpty(String.valueOf(parse_contour))
 					|| StringUtils.isEmpty(String.valueOf(parse_response))) {
@@ -443,21 +644,23 @@ public class DoeController {
 				resultStats.put("resultData", data);
 				return resultJSON; 
 			}
-
+			
 			/** start binary 데이터 이미지 저장*/
 			// base64 -> 이미지 저장 후 경로를 담을 list 변수 선언
-			ArrayList<String> pareto_list = getGraphList(path1, parse_pareto);
-			ArrayList<String> contour_list = getGraphList(path2, parse_contour);
-			ArrayList<String> response_list = getGraphList(path3, parse_response);
+			//ArrayList<String> pareto_list = getGraphList(path1, parse_pareto);
+			//ArrayList<String> contour_list = getGraphList(path2, parse_contour);
+			//ArrayList<String> response_list = getGraphList(path3, parse_response);
 			
 			// 기존 path로 주어지던 key값 활용
-			((ObjectNode)parse_result).put("pareto", om.valueToTree(pareto_list));
-			((ObjectNode)parse_result).put("contour", om.valueToTree(contour_list));
-			((ObjectNode)parse_result).put("response", om.valueToTree(response_list));
+			//((ObjectNode)parse_result).put("pareto", om.valueToTree(pareto_list));
+			//((ObjectNode)parse_result).put("contour", om.valueToTree(contour_list));
+			//((ObjectNode)parse_result).put("response", om.valueToTree(response_list));
 			/** end binary 데이터 이미지 저장 */
-
-			System.out.println("최종 data check : " + data);
-
+			
+			System.out.println("최종 response check : " + data);
+		/// ********************************************
+		/// *************** TRY_API 요청 끝 ***************
+		/// ********************************************
 		} catch (MalformedURLException e) {
 			log.error("######### 예외 발생65 ##########");
 		} catch (IOException e) {
@@ -467,40 +670,126 @@ public class DoeController {
 		} finally {
 			in.close();
 		}
-
-		// step6 api 호출시 이미지 경로 db 저장
+		
 		JSONParser parser = new JSONParser();
 		org.json.simple.JSONObject jsonObj = (org.json.simple.JSONObject) parser.parse(data.toString());
 
 		// 원본
 		org.json.simple.JSONObject jsons = (org.json.simple.JSONObject) jsonObj.get("result");
-		org.json.simple.JSONArray respPlotList = (org.json.simple.JSONArray) jsons.get("response");
+		org.json.simple.JSONArray anovaList = (org.json.simple.JSONArray) jsons.get("anova");
+		org.json.simple.JSONArray responseList = (org.json.simple.JSONArray) jsons.get("response");
 		org.json.simple.JSONArray contourList = (org.json.simple.JSONArray) jsons.get("contour");
 		org.json.simple.JSONArray paretoList = (org.json.simple.JSONArray) jsons.get("pareto");
-
+		
+		System.out.println("anovaList : " + anovaList);
+		
+		ObjectMapper objectMapper = new ObjectMapper();
+		
+		ObjectNode imagePathNode = objectMapper.createObjectNode();
+		
+		ArrayNode contourPathArray = objectMapper.createArrayNode();
+		ArrayNode responsePathArray = objectMapper.createArrayNode();
+		ArrayNode paretoPathArray = objectMapper.createArrayNode();
+		
 		DataMap outputData = new DataMap();
-		for (int i = 0; i < respPlotList.size(); i++) {
-			outputData.put("response_path_" + (i + 1), respPlotList.get(i));
-			outputData.put("contour_path_" + (i + 1), contourList.get(i));
-
+		// *******************************************
+		// ***************-image_write-***************
+		// *******************************************
+		
+			// ************** Pareto_Plot **************
+		System.out.println("*** Pareto_Plot ***");
+		for (int i=0; i< paretoList.size() + 1; i++) {
+			if (i == paretoList.size()) {
+				imagePathNode.set("pareto", paretoPathArray);
+			}
+			else {
+				org.json.simple.JSONObject jsonObject = (org.json.simple.JSONObject) paretoList.get(i);
+				
+				System.out.println("ParetoList"+ i + "번째 image_name :" + (String) jsonObject.get("image_name"));
+				
+				String parse_text = (String) jsonObject.get("image_to_base64");
+				
+				byte [] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(parse_text);
+				BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageBytes));
+				ImageIO.write(img, "png", new File(pareto_path + (String) jsonObject.get("image_name") + ".png"));
+				
+				outputData.put("preto_path_" + (i+1), pareto_path + (String) jsonObject.get("image_name") + ".png");
+				paretoPathArray.add(pareto_path + (String) jsonObject.get("image_name") + ".png");
+			}
 		}
-
-		for (int i = 0; i < paretoList.size(); i++) {
-			outputData.put("preto_path_" + (i + 1), paretoList.get(i));
+		
+			// ************** Contour_Plot **************
+		System.out.println("*** Contour_Plot ***");
+		for (int i=0; i< contourList.size() + 1; i++) {
+			if (i == contourList.size()) {
+				imagePathNode.set("contour", contourPathArray);
+			}
+			else {
+				org.json.simple.JSONObject jsonObject = (org.json.simple.JSONObject) contourList.get(i);
+				
+				System.out.println("ContourList"+ i + "번째 image_name :" + (String) jsonObject.get("image_name"));
+				
+				String parse_text = (String) jsonObject.get("image_to_base64");
+				
+				byte [] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(parse_text);
+				BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageBytes));
+				ImageIO.write(img, "png", new File(contour_path + (String) jsonObject.get("image_name") + ".png"));
+				
+				outputData.put("contour_path_" + (i+1), contour_path + (String) jsonObject.get("image_name") + ".png");
+				contourPathArray.add(pareto_path + (String) jsonObject.get("image_name") + ".png");
+			}
 		}
-
+		
+			// ************** Response_Plot **************
+		System.out.println("*** Response_Plot ***");
+		for (int i=0; i< responseList.size() + 1; i++) {
+			if (i == responseList.size()){
+				imagePathNode.set("response", responsePathArray);
+			}
+			else {
+				org.json.simple.JSONObject jsonObject = (org.json.simple.JSONObject) responseList.get(i);
+				
+				System.out.println("ResponseList"+ i + "번째 image_name :" + (String) jsonObject.get("image_name"));
+				
+				String parse_text = (String) jsonObject.get("image_to_base64");
+				
+				byte [] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(parse_text);
+				BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageBytes));
+				ImageIO.write(img, "png", new File(response_path + (String) jsonObject.get("image_name") + ".png"));
+				
+				outputData.put("response_path_" + (i+1), response_path + (String) jsonObject.get("image_name") + ".png");
+				responsePathArray.add(pareto_path + (String) jsonObject.get("image_name") + ".png");
+			}
+		}
+		
+		System.out.println("************_PRINT-END_************");
+		
+		// ***********************************************
+		// ***************-Image_Write_End-***************
+		// ***********************************************
+		
 		UserInfoVo userInfoVo = SessionUtil.getSessionUserInfoVo(request);
 		outputData.put("prjct_id", param.getString("prjct_id"));
 		outputData.put("status", param.getString("status"));
 		outputData.put("ss_user_no", userInfoVo.getUserNo());
+		
+
+		System.out.println("outputData : " + outputData);
+		System.out.println("outputData TYPE : " + outputData.getClass().getName());
 		// insert 및 insert 하기전 update(USE_YN = 'N')
 		formulationService.stepChangeFunc(outputData);
 
 		doeService.insertStep6Graph(outputData);
-
+		((ObjectNode)data).set("image_path", imagePathNode);
+		
 		resultStats.put("resultData", data);
 		resultJSON.put("resultStats", resultStats);
-
+		
+		System.out.println("resultData : " + data);
+		System.out.println("resultData TYPE : " + data.getClass().getName());
+		System.out.println("ResultStats : " + resultStats);
+		System.out.println("ResultStats TYPE : " + resultStats.getClass().getName());
+		System.out.println("resultJSON: " + resultJSON);
 		return resultJSON;
 	}
 
@@ -647,11 +936,6 @@ public class DoeController {
 			}
 			conn.disconnect();
 
-//			log.debug(sb.toString());
-//			JSONParser parser = new JSONParser();
-//			data = parser.parse(sb.toString());
-
-			// add 22.06.02 (objectMapper로 데이터 형태 변환)
 			ObjectMapper om = new ObjectMapper();
 			data = om.readTree(sb.toString());
 			
@@ -668,7 +952,7 @@ public class DoeController {
 				((ObjectNode)data).put("code", "111");
 				((ObjectNode)data).put("msg", "이미지 binary 데이터 값이 비어있습니다. 다시 확인해주세요.");
 				resultStats.put("resultData", data);
-				return resultJSON; 
+				return resultJSON;
 			}
 			
 			/** start binary 데이터 이미지 저장*/
