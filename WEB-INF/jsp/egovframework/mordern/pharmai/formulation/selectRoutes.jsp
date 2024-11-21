@@ -69,7 +69,9 @@
 			<input type="hidden" name="prjct_id" value="<%=param.getString("prjct_id")%>"/>
 			<input type="hidden" name="projectName" value ="">
 			<div class="row">
-				<div class="col-lg-6">
+				
+				<%--투여 경로 선택 Container--%>
+				<div class="col-lg-6"> 
 					<div class="card card-outline">
 						<div class="card-header">
 							<h4 class="card-title">투여 경로 선택</h4>
@@ -77,6 +79,7 @@
 						<div class="card-body">
 							<div class="form-group">
 								<label for="routesSelection">Routes of administration Selection</label>
+								
 								<div class="input-group">
 									<select class="select form-control inputType" id="routes" name="routes">
 										<option value="">투여경로 선택</option>
@@ -85,6 +88,7 @@
 										<option value="local" <%if(param.getString("routes").equals("local")){%> selected <%}%>>Local</option>
 									</select>
 								</div>
+								
 								<div class="form-group mt-4">
 									<label for="recommendationRoutes">추천 경로</label>
 									<div class="input-group">
@@ -122,14 +126,20 @@
 						</div>
 					</div>
 				</div>
+				<%--#################--%>
+				
+				<%--투여 경로 선택 Container--%>
 				<div class="col-lg-6">
 					<div class="card card-outline">
+					
 						<div class="card-header">
 							<h4 class="card-title">제형 추천/ 선택</h4>
 						</div>
+						
 						<div class="card-body center" id="nodata">
 							<h2 class="nodate_default">No Data</h2>
 						</div>
+						
 						<div class="card-body" id="shape_recommendation" style="display: none;">
 							<div class="form-group">
 								<div class="table-responsive-md table-fixed">
@@ -177,6 +187,7 @@
 						</div>
 					</div>
 				</div>
+				<%--#################--%>
 			</div>
 		</form>
 	</div>

@@ -425,12 +425,17 @@
 	}
 
 	function fnCheckFormulationStep4(){
-
+		if ($('[name=DoE] > option:selected').val() == "none") {
+	        alert("실험 설계법(DoE)을 선택해주세요.");
+	        return;
+	    }
+		
 		if($('input[type="checkbox"][name="cqas_list"]:checked').length < 1){
 			alert("CQAs를 선택해주세요.");
 			return;
 		}
-
+		
+		
 		return true;
 	}
 

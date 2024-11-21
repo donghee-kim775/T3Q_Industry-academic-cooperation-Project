@@ -1199,7 +1199,7 @@ var dbpath = "";
 							
 							// env에 따라 분기처리 (local인 경우는 replace를 진행할 필요가 없음)
 							if (system_env == "LOCAL"){
-								generated_Molecuule = generated_Molecule;								
+								generated_Molecuule = generated_Molecule.replace("C:/eGovFrameDev-3.9.0-64bit/workspace/PharmAI/src/main/webapp", "");								
 							}else{
 								generated_Molecuule = generated_Molecule.replace('/home/data/t3q/uploads/','/upload/');	
 							}

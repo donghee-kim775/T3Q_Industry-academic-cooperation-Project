@@ -8,6 +8,7 @@
 
 <%@ include file="/WEB-INF/jsp/egovframework/mordern/config/common.jsp" %>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+<!--
 <script type="text/javascript">
 	//<![CDATA[
 		$(document).ready(function(e){
@@ -161,6 +162,7 @@
 
 	//]]>
 </script>
+-->
 
 <jsp:include page="headerStep.jsp" flush="false"/>
 

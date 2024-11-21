@@ -9,16 +9,32 @@
 <%@ include file="/WEB-INF/jsp/egovframework/mordern/config/common.jsp" %>
 
 <script type="text/javascript">
+    $(document).ready(function() {
+        // Handle Design of Experiment selection change
+        $('#DoE').change(function() {
+            var selectedValue = $(this).val();
+
+            // Show total-volume input if SLD is selected, hide otherwise
+            if (selectedValue === 'SLD') {
+                $('#total-volume-container').show(); // Show the input field
+            } else {
+                $('#total-volume-container').hide(); // Hide the input field
+            }
+        });
+    });
+</script>
+
+<script type="text/javascript">
 //<![CDATA[
 
 	$(document).ready(function(e){
 		var step_new = $('input[name=step_new]').val();
 		var cqa_nm = $('input[name=cqa_nm]').val();
 		var cqa_routes = $('input[name=cqa_routes]').val();
-
+		var cntExcipient = <%= param.getInt("cntExcipient") %>;
 		var param = {
 				'formulation' : cqa_nm,
-				'routes' : cqa_routes
+				'routes' : cqa_routes,
 		}
 
 		//checkbox max ten
@@ -30,7 +46,17 @@
 				alert("선택은 10개까지만 할 수 있습니다.");
 			}
 		});
+		
+		$('#DoE').change(function() {
+	        var cntExcipient = $('input[name=cntExcipient]').val(); // hidden input에서 cntExcipient 값 가져옴
 
+	        // BBD 선택 시 cntExcipient 값이 3 미만일 때 경고
+	        if ($(this).val() === 'BBD' && cntExcipient < 3) {
+	            alert('Excipient가 3개 미만일 때는 Box-Behnken Design (BBD)을 선택할 수 없습니다.');
+	            $(this).val("none"); // 선택 초기화
+	        }
+	    });
+		
 		if(step_new == 'Y'){
 			console.log("url : getApi4RoutesAjax");
 			$.ajax({
@@ -89,7 +115,48 @@
 			<input type="hidden" name="projectName" value ="">
 			<input type="hidden" name="cqa_nm" value="<%=param.getString("cqa_nm")%>"/>
 			<input type="hidden" name="cqa_routes" value="<%=param.getString("cqa_routes")%>"/>
-
+			<input type="hidden" name="cntExcipient" value="<%=param.getInt("cntExcipient")%>">
+						<div class = "row">
+				<%--실험 설계법 row--%>
+					<div class="col-lg-12">
+						<div class="card card-outline">
+							<div class="card-header">
+								<h4 class="card-title">실험설계법(Design Of Experiment) 선택</h4>
+							</div>
+							<div class = "card-body">
+								<div class="form-group">
+									<label for = "DOESelection">Design Of Experiment 방식</label>
+									
+									<div class = "input-group">
+										<select class = "select form-control inputType" id ="DoE" name ="DoE">
+											<option value = "none"> 실험설계법 방식 선택</option>
+											<option value = "CCD">Response Surface Design : Central Composite Design</option>
+											<option value = "BBD">Response Surface Design : Box-Behnken Design</option>
+											<option value = "SLD">Mixture Design : Simplex Lattice Design</option>
+										</select>
+									</div>
+									
+						            <!-- Total Volume Input Field -->
+						            <div class="row" id="total-volume-container" style="display:none;">
+						                <div class="col-lg-12">
+						                    <div class="card card-outline">
+						                        <div class="card-body">
+						                            <div class="form-group">
+						                                <label for="total-volume">Total Volume:</label>
+						                                <div class="input-group">
+						                                    <input type="text" class="form-control" id="total-volume" name="total-volume" placeholder="Enter total volume">
+						                                </div>
+						                            </div>
+						                        </div>
+						                    </div>
+						                </div>
+						            </div>
+								</div>
+							</div>
+						</div>
+					</div>
+			</div>
+			<%--#################--%>
 			<div class="row">
 				<div class="col-lg-12">
 					<div class="card card-outline">

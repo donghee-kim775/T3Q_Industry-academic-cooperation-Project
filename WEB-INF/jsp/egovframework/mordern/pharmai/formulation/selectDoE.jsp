@@ -7,6 +7,12 @@
 
 <%@ include file="/WEB-INF/jsp/egovframework/mordern/config/common.jsp"%>
 
+<style>
+  .table-container {
+    margin-bottom: 20px; /* Adjusts spacing between each table */
+  }
+</style>
+
 <script type="text/javascript">
 	//<![CDATA[
 	var target_Yn = false;
@@ -27,7 +33,7 @@
 			$('.tab-content').css('display', 'none');
 			$(this).addClass('active');
 			$("#"+tab_id).css('display', 'block');
-
+			console.log("tab_id : ", tab_id);
 
 			if(tab_id == 'tab-5' && target_Yn == false) {
 				$('.nav-item a').removeClass('active');
@@ -77,11 +83,17 @@
 					var code = response.resultStats.resultData.code;
 					if(code == "000"){
 						var data = response.resultStats.resultData;
-						var pareto = data.result["pareto"];
-						var contour = data.result["contour"];
-						var response = data.result["response"];
+						var pareto = data.image_path["pareto"];
+						var contour = data.image_path["contour"];
+						var response = data.image_path["response"];
+						var anova_data = data.result.anova;
 						var effects = data.result.effects;
-
+						console.log("pareto: ", pareto);
+						console.log("pareto: ", contour);
+						console.log("pareto: ", response);
+						console.log("pareto: ", effects);
+						console.log("anova : ", anova_data);
+						
 						var tag = "";
 						
 						// globals.properties의 env 값 받아오기
@@ -183,7 +195,59 @@
 						}
 
 						$("#effects_body").html(tag);
+						
+						var tag = "";
+						for (var i = 0; i < anova_data.length; i++){
+							tag += '<div class="table-container" style="margin-top: 20px; margin-bottom: 20px;">'; // 위아래 간격을 띄우기 위한 margin 추가
+							tag += '	<h2 style="text-align: left;"> Response : ' + anova_data[i]["response_type"] + '</h2>';
+						    // 테이블 구성
+						    tag += '<table class="table table-bordered text-center" id="anova_table_' + (i + 1) + '" style="max-width: 70%; margin-left: 0;">';
+						    tag += '    <thead>';
+						    tag += '        <tr>';
+						    tag += '            <th>Source</th>';
+						    tag += '            <th>DF</th>';
+						    tag += '            <th>Sum_Sq</th>';
+						    tag += '            <th>Mean_Sq</th>';
+						    tag += '            <th>F_Value</th>';
+						    tag += '            <th>Pr(>F)</th>';
+						    tag += '        </tr>';
+						    tag += '    </thead>';
+						    tag += '    <tbody>';
+						    
+						    // source 데이터 중 Residuals가 아닌 항목 추가
+						    for (const [source, values] of Object.entries(anova_data[i]["source"])) {
+						        if (source !== "Residuals") {  // Residuals는 마지막에 추가
+						            tag += '        <tr>';
+						            tag += '            <td>' + source + '</td>';
+						            tag += '            <td>' + values.df + '</td>';
+						            tag += '            <td>' + values.sum_sq.toFixed(2) + '</td>';
+						            tag += '            <td>' + values.mean_sq.toFixed(2) + '</td>';
+						            tag += '            <td>' + values["F value"].toFixed(2) + '</td>';
+						            tag += '            <td>' + values["Pr(>F)"].toFixed(2) + '</td>';
+						            tag += '        </tr>';
+						        }
+						    }
 
+						    // 마지막에 Residuals 항목 추가
+						    if (anova_data[i]["source"].hasOwnProperty("Residuals")) {
+						        const residuals = anova_data[i]["source"]["Residuals"];
+						        tag += '        <tr>';
+						        tag += '            <td>Residuals</td>';
+						        tag += '            <td>' + residuals.df + '</td>';
+						        tag += '            <td>' + residuals.sum_sq.toFixed(2) + '</td>';
+						        tag += '            <td>' + residuals.mean_sq.toFixed(2) + '</td>';
+						        tag += '            <td>' + residuals["F value"].toFixed(2) + '</td>';
+						        tag += '            <td>' + residuals["Pr(>F)"].toFixed(2) + '</td>';
+						        tag += '        </tr>';
+						    }
+
+						    tag += '    </tbody>';
+						    tag += '</table>';
+						    tag += '</div>';
+						}
+						
+						$("#tab-0").html(tag);
+						
 					}else{
 						var prjct_id = $('input[name=prjct_id]').val();
 						var msg = response.resultStats.resultData.msg;
@@ -532,16 +596,24 @@
 						<div class="card-body">
 							<div class="card-primary card-tabs">
 								<ul class="nav nav-tabs">
+									<!-- anova plot 추가 -->
+									<li class="nav-item tab-0">
+							      		<a class="nav-link navALink" data-tab="tab-0" href="#">Anova</a>
+							      	</li>
+									<!------------------->
+								
 						      		<li class="nav-item tab-1" >
 							        	<a class="nav-link navALink active" data-tab="tab-1" href="#">Pareto chart and residual plot</a>
 							      	</li>
+							      	
 							      	<li class="nav-item tab-2">
 							        	<a class="nav-link navALink"  data-tab="tab-2" href="#">Contour plots</a>
 							      	</li>
+							      	
 							      	<li class="nav-item tab-3" >
 							        	<a class="nav-link navALink" data-tab="tab-3" href="#">Response surface plots</a>
 							      	</li>
-
+									
 					        		<li class="nav-item tab-4" >
 							        	<a class="nav-link navALink" data-tab="tab-4" href="#">Design space</a>
 							      	</li>
@@ -564,7 +636,11 @@
 								    <div id="loading-text"><h5>데이터 조회중</h5><h6>(최대 10분  소요)</h6></div>
 								</div>
 							</c:if>
-
+							
+							<!-- anova tab-0 추가 -->
+							<div id = "tab-0" class="card-body tab-content text-center" style="display: none;">
+								<h2> Testing </h2>
+							</div>
 
 							<div id="tab-1" class="card-body tab-content text-center">
 								<c:if test="${selectStep6Graph_preto == null}">
@@ -579,30 +655,35 @@
 												<h4>${preto_file_nm.PRETO_PATH_1_NM}</h4>
 											</div>
 										</div>
+										
 										<div class="image mt-4 col-md-4">
 											<img style="width:80%;" src="${selectStep6Graph_preto.PRETO_PATH_2} "/>
 											<div class="mt-2">
 												<h4>${preto_file_nm.PRETO_PATH_2_NM}</h4>
 											</div>
 										</div>
+										
 										<div class="image mt-4 col-md-4">
 											<img style="width:80%;" src="${selectStep6Graph_preto.PRETO_PATH_3} "/>
 											<div class="mt-2">
 												<h4>${preto_file_nm.PRETO_PATH_3_NM}</h4>
 											</div>
 										</div>
+										
 										<div class="image mt-4 col-md-4">
 											<img style="width:80%;" src="${selectStep6Graph_preto.PRETO_PATH_4} "/>
 											<div class="mt-2">
 												<h4>${preto_file_nm.PRETO_PATH_4_NM}</h4>
 											</div>
 										</div>
+										
 										<div class="image mt-4 col-md-4">
 											<img style="width:80%;" src="${selectStep6Graph_preto.PRETO_PATH_5} "/>
 											<div class="mt-2">
 												<h4>${preto_file_nm.PRETO_PATH_5_NM}</h4>
 											</div>
 										</div>
+										
 									</div>
 								</c:if>
 							</div>
@@ -888,8 +969,7 @@
 										<ion-icon name="print-outline"></ion-icon>
 									</button>
 								</div>
-
-
+								
 							  <table class="table table-bordered text-center" id="excipient_data">
 								  <c:if test="${selectStep6ResultList != null }">
 										<tr>
@@ -904,8 +984,8 @@
 								  			</tr>
 								  		</c:forEach>
 								  	</c:if>
-
 							  </table>
+							  
 							  <table class="table table-bordered text-center" id="factor_data">
 								  <c:if test="${selectStep6ResultList != null }">
 										<tr>
@@ -925,6 +1005,7 @@
 								  		</c:forEach>
 								  	</c:if>
 							  </table>
+							  
 							  <div class="row" id="result_contour">
 								  <c:if test="${selectStepResultImgData != null }">
 								  	<c:if test="${selectStepResultImgData.CONTOUR_IMG_PATH_1 != '' }">
@@ -1096,6 +1177,7 @@
 
 					  		  	 </c:if>
 							  </div>
+							  
 							  <div class="row mt10 col-12">
 							  	<div class="row col-6" id="result_design">
 							  		<c:if test="${selectStepResultImgData != null }">
@@ -1129,6 +1211,7 @@
 
 									</c:if>
 							  	</div>
+							  	
 							  	<div class="col-6 mt-4">
 									<table class="table table-bordered text-center" id="Excipient_table">
 										<c:if test="${selectStp_03 != null }">
@@ -1163,7 +1246,9 @@
 										</c:if>
 									</table>
 							  	</div>
+							  	
 							  </div>
+							  
 							</div>
 						</div>
 					</div>

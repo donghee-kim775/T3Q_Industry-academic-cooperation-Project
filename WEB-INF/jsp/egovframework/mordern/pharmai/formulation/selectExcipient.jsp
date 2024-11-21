@@ -274,7 +274,6 @@
 													<input type="hidden" name="maximum" value="${item.MAXIMUM }">
 													<input type="hidden" name="unit" value="${item.UNIT }">
 													<input type="hidden" name="checkYn" value="${item.CHECK_YN }">
-
 												</tr>
 
 											</c:forEach>
