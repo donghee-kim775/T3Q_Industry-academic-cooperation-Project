@@ -43,10 +43,10 @@
 						<prop key="username">common_ora</prop>
 						<prop key="password">common_ora</prop> -->
 						<!-- MYSQL -->
-						<prop key="jdbcUrl">jdbc:mysql://192.168.10.120:3306/pharmai?useUnicode=yes&amp;characterEncoding=UTF8&amp;zeroDateTimeBehavior=convertToNull&amp;serverTimezone=Asia/Seoul</prop>
+						<prop key="jdbcUrl">jdbc:mysql://localhost:3306/pharmai?useUnicode=yes&amp;characterEncoding=UTF8&amp;zeroDateTimeBehavior=convertToNull&amp;serverTimezone=Asia/Seoul</prop>
 						<!-- <prop key="jdbcUrl">jdbc:mysql://127.0.0.1:3306/common?useUnicode=yes&amp;characterEncoding=UTF8&amp;zeroDateTimeBehavior=convertToNull&amp;serverTimezone=UTC</prop> -->
-						<prop key="username">pharmai</prop>
-						<prop key="password">pharmai!</prop>
+						<prop key="username">root</prop>
+						<prop key="password">1234</prop>
 					</props>
 				</constructor-arg>
 				<!-- ORACLE -->
