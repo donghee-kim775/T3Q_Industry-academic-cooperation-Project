@@ -115,13 +115,12 @@ public class ExcipientController {
 		DataMap param = RequestUtil.getDataMap(request);
 
 		UserInfoVo userInfoVo = SessionUtil.getSessionUserInfoVo(request);
-
+		System.out.println("saveStep3 param : " + param);
+		
 		param.put("ss_user_no", userInfoVo.getUserNo());
 		param.put("prjct_id", param.getString("prjct_id", userInfoVo.getCur_prjct_id()));
-
 		formulationService.stepChangeFunc(param);
 
-		
 		excipientService.insertStep3(param);
 
 		//마지막 수정일

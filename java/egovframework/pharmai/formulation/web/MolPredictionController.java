@@ -302,8 +302,8 @@ public class MolPredictionController {
 		System.out.println("jsonob : " + jsonob.toString());
 
 		try {
-
 			url = new URL(EgovPropertiesUtil.getProperty("Globals.api.formulation.api1"));
+			System.out.println(url);
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
 			conn.setRequestProperty("Accept", "application/json");
