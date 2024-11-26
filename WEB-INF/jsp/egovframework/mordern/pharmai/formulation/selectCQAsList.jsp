@@ -12,7 +12,7 @@
     $(document).ready(function() {
         // Handle Design of Experiment selection change
         $('#DoE').change(function() {
-            var selectedValue = $(this).val();
+            var selectedValue = $(this).val(); //이거는 머야
 
             // Show total-volume input if SLD is selected, hide otherwise
             if (selectedValue === 'SLD') {
