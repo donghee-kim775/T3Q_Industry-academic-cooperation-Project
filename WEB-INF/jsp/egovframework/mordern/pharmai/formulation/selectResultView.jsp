@@ -15,7 +15,7 @@
 
 //]]>
 </script>
-
+<!-- dkdkdk -->
 <style type="text/css">
 	.result-view-title{ text-align: center; letter-spacing: 0px; color: #555555; background: #FAFAFA 0% 0% no-repeat padding-box;}
 	.result-view{width: 100%; border: 1px solid #E2E2E2;}
